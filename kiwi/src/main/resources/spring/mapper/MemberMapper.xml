@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0/EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="member.model.MemberMapper">
+	<!-- 회원가입 -->
+
+	<insert id="insertMember" parameterType="Member">
+		INSERT INTO
+		member(midx,email,pwd,mname,tel) VALUES(kiwi_member_seq.nextval,
+		#{email:VARCHAR},#{pwd:VARCHAR},#{mname:VARCHAR},#{tel:VARCHAR})
+	</insert>
+
+	<select id="emailCheck" parameterType="string" resultType="int">
+		select midx from member where email=#{email}
+	</select>
+
+	<select id="findMemberByEmail" parameterType="string"
+		resultType="Member">
+		select * from member where email=#{email1}
+	</select>
+
+	<select id="selectByMidx" parameterType="int" resultType="Member">
+		select
+		* from member where midx=#{midx}
+	</select>
+
+	<update id="updateMember" parameterType="Member">
+		update member set
+		email=#{email},
+		pwd=#{pwd},
+		tel=#{tel}
+		where midx=#{midx}
+	</update>
+
+	<select id="listMember" resultType="Member">
+		select * from member order by
+		midx asc
+	</select>
+
+	<select id="totalCount" resultType="int">
+		select count(*) from member
+	</select>
+
+	<delete id="deleteMember" parameterType="int">
+		delete from member where
+		midx=#{midx}
+	</delete>
+
+	<select id="findMember" parameterType="int" resultType="Member">
+		select *
+		from member where midx=#{midx}
+	</select>
+
+	<!--회원 검색 -->
+	<select id="findMemberTotal" parameterType="map" resultType="int">
+		select count(*) from member
+		<if test="findType != null and findKeyword !=''">
+			where ${findType} like '%'||#{findKeyword}||'%'
+		</if>
+	</select>
+	<select id="listMemberPaging" parameterType="map" resultType="Member">
+<![CDATA[							
+		select * from(
+		select row_number() over(order by mname asc) rn, member.* from member
+		) where rn between #{start} and #{end}
+		]]>
+	</select>
+	<select id="findMemberPaging" parameterType="map" resultType="Member">
+			<![CDATA[
+				select * from(
+				select row_number()
+				over(order by mname asc) rn,
+				member. * from member
+				where ${findType} like '%'||#{findKeyword}||'%'	  
+				)where rn between #{start} and #{end}
+			]]>
+	</select>
+
+	<!--회원 아이디로 회원정보 가져오기 -->
+	<select id="findMemberByUserid" parameterType="string"
+		resultType="Member">
+		select * from member where email=#{email}
+	</select>
+
+	<!-- 이메일 찾기 -->
+	<select id="findEmail" parameterType="String" resultType="Member">
+		select
+		email from member where mname=#{mname} and tel=#{tel};
+	</select>
+
+	<!-- 이메일 찾기 -->
+	<select id="findUserEmail1" parameterType="map" resultType="string">
+		select email from member where mname=#{mname} and tel=#{tel}
+	</select>
+
+	<!-- 비밀번호 찾기 -->
+	<select id="findUserEmail" parameterType="map" resultType="string">
+		select email from member where mname=#{mname} and email=#{email} and
+		tel=#{tel}
+	</select>
+
+	<!-- 전문가 랭킹 -->
+	<select id="getMrank" resultType="Member">
+		select mname, sell from member where sell != 0 order by sell desc
+	</select>
+
+</mapper>

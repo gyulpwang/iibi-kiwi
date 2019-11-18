@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org/DTD Config 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<!-- 타입 별칭 ========================================================== -->
+	<typeAliases>
+		<!-- 재능 관련 별칭 -->
+		<typeAlias type="talent.model.CategoryVO" alias="Category"/>
+		<typeAlias type="talent.model.TalentVO" alias="Talent"/>
+		<typeAlias type="talent.model.ReviewVO" alias="Review"/>
+		<typeAlias type="talent.model.OrderVO" alias="Order"/>
+		<!-- 도와주세요 관련 별칭 -->
+		<typeAlias type="help.model.HelpVO" alias="Help"/>
+		<typeAlias type="help.model.SuggestVO" alias="Suggest"/>
+		<typeAlias type="help.model.PagingVO" alias="Paging"/>
+		<!-- 회원 및 관리자 관련 별칭 -->
+		<typeAlias type="admin.model.AdminVO" alias="Admin"/>
+		<typeAlias type="member.model.MemberVO" alias="Member"/>
+		<!-- 고객센터 관련 별칭 -->
+		<typeAlias type="service.model.NoticeVO" alias="Notice"/>
+		<typeAlias type="service.model.FaqVO" alias="Faq"/>
+	</typeAliases>
+	<!-- ================================================================ -->
+
+	<!-- 매퍼 정의 ========================================================= -->
+	<!-- SQL 문이 등록된 매퍼 파일을 등록한다. -->
+	<mappers>
+		<!-- 재능 관련 매퍼 정의 -->
+		<mapper resource="spring/mapper/TalentMapper.xml"/>
+		<mapper resource="spring/mapper/OrderMapper.xml"/>
+		<!-- 도와주세요 관련 매퍼 정의 -->
+		<mapper resource="spring/mapper/HelpMapper.xml"/>
+		<!-- 회원 및 관리자 관련 매퍼 정의 -->
+		<mapper resource="spring/mapper/AdminMapper.xml"/>
+		<mapper resource="spring/mapper/MemberMapper.xml"/>
+		<!-- 고객센터 관련 매퍼 정의 -->
+		<mapper resource="spring/mapper/NoticeMapper.xml"/>
+		<mapper resource="spring/mapper/FaqMapper.xml"/>
+	</mappers>
+	<!-- ================================================================ -->
+</configuration>

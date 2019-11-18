@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0/EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="admin.model.AdminMapper">
+	<!-- 회원가입 -->	
+	<select id="adminemailCheck" parameterType="string" resultType="int">
+		select aidx from admin where aemail=#{aemail}
+	</select>	
+	
+	<select id="findByAdminEmail" parameterType="string"
+	resultType="Admin">
+		select * from admin where aemail=#{aemail}
+	</select> 
+</mapper>

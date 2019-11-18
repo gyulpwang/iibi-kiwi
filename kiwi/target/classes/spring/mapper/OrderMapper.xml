@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0/EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="talent.model.OrderMapper">
+	<!-- 주문하기를 통해 주문내용 orderdesc에 등록 -->
+	<select id="insertOrder" parameterType="Order" resultType="Order">
+		insert into orderdesc(onum, midx, tnum, oname, otalent, oqty, 
+		ototalprice, opaystate, orderdate, ordermemo, paymethod)
+		values(orderdesc_onum_SEQ.nextval, #{midx}, #{tnum}, #{oname:VARCHAR}, 
+		#{otalent:VARCHAR}, #{oqty:NUMERIC}, #{ototalprice:NUMERIC}, 
+		#{opaystate:VARCHAR}, sysdate, #{ordermemo:VARCHAR}, #{paymethod:NUMERIC})
+	</select>
+	
+	<!-- 주문정보 가져오기 -->
+	<select id="getOrderDesc" parameterType="int" resultType="Order">
+		select * from orderdesc where onum=(select count(*) from orderdesc)
+	</select>
+	
+	<!-- 주문재능정보 가져오기 -->
+	<select id="getOrderTalentDesc" parameterType="int" resultType="Talent">
+		select * from talent where tnum=#{tnum}
+	</select>
+	
+	<!-- 주문수량만큼 재능수량에서 빼주기 -->
+	<update id="setPayResult" parameterType="map">
+		update talent set tqty=tqty-${oqty} where tnum=#{tnum}
+	</update>
+	
+	<!-- 판매자의 총 판매금액에 주문금액 추가 -->
+	<update id="setPRtoSeller" parameterType="map">
+		update member set 
+		sell=sell+${ototalprice}
+		<!-- , netprofit=netprofit+${ototalprice} -->
+		where midx=(select midx from talent where tnum=#{tnum})
+	</update>
+	
+	<!-- 구매자의 총구매금액에 주문금액 삭감 -->
+	<update id="setPRtoBuyer" parameterType="map">
+		update member set 
+		buy=buy+${ototalprice}
+		<!-- , netprofit=netprofit-${ototalprice} --> 
+		where midx=#{midx}
+	</update>
+	
+	<!-- [재능 & 회원] 마이페이지 - 재능 통계 =============================================== -->
+	<select id="getMySellCnt" parameterType="int" resultType="int">
+		select count(tnum) from talent where midx=#{midx}
+	</select>
+	
+	<select id="getMySell" parameterType="map" resultType="Talent">
+		select * from orderdesc 
+		where midx != #{midx}
+		and midx = (select midx from talent where tnum=#{tnum});
+	</select>
+	
+	<select id="getMyBuyCnt" parameterType="int" resultType="int">
+		select count(onum) from orderdesc where midx=#{midx}
+	</select>
+	
+	<select id="getMyBuy" parameterType="int" resultType="Order">
+		select * from orderdesc where midx=#{midx}
+	</select>
+
+	<select id="getTotBuy" parameterType="int" resultType="int">
+		select nvl(buy,0) buy from member where midx=#{midx}
+	</select>
+	
+	<select id="getTotSell" parameterType="int" resultType="int">
+		select nvl(sell,0) sell from member where midx=#{midx}
+	</select>
+	
+</mapper>

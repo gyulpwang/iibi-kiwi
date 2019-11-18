@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- Uncomment and your base-package here:
+         <context:component-scan
+            base-package="org.springframework.samples.web"/>  -->
+
+	<!-- context:component-scan을 설정하면 어노테이션을 통해 빈을 생성할 수 있도록 해준다. ================================== -->
+	<!-- 공통(common) -->
+	<context:component-scan base-package="common.file, common.util, common.controller, common.service"/>
+	<!-- 회원, 관리자 -->
+	<context:component-scan base-package="member.controller, member.model, admin.controller, admin.model"/>
+	<!-- 재능, 도와주세요 -->
+	<context:component-scan base-package="talent.controller, talent.model, help.controller, help.model, help.service" />	
+	<!-- 고객센터(공지사항, QnA, FAQ) -->
+	<context:component-scan base-package="service.controller, service.model, service.service" />
+	<!-- ================================================================================================= -->
+    <mvc:annotation-driven />
+
+	<!-- Interceptor 설정 ============================================= -->
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/member/**"/>
+			<bean class="common.interceptor.LoginCheckInterceptor"/>
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/admin/**"/>
+			<bean class="common.interceptor.AdminCheckInterceptor"/>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	<!-- ============================================================== -->
+	
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+	        <!-- Example: a logical view name of 'showMessage' is mapped to '/WEB-INF/jsp/showMessage.jsp' -->
+	        <property name="prefix" value="/WEB-INF/view/"/>
+	        <property name="suffix" value=".jsp"/>
+	</bean>
+
+	<!-- MultipartResolver 설정 ============================================================================
+	주의 : id는 반드시 multipartresolver로 등록해야 한다.
+	다른 아이디를 주면 DispatcherServlet이 MultipartResolver로 인식하질 않는다. ======================================== -->
+	<bean id="multipartResolver" 
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+			<!-- 파일 업로드 최대 용량을 무제한으로 주려면 -1 값을 준다. -->
+			<property name="maxUploadSize" value="-1"/>
+			<property name="defaultEncoding" value="UTF-8"/>
+	</bean>
+
+</beans>

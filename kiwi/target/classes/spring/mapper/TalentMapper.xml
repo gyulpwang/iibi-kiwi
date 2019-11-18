@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0/EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="talent.model.TalentMapper">
+
+	<!--============================== 분류 및 재능 관련 ==============================-->
+	<!-- 상위분류 목록 가져오기 -->
+	<select id="selectUpCategory" resultType="Category">
+		select upcode, upname from upCate
+	</select>
+	
+	<!-- 상위분류번호에 해당하는 특정 상위분류 정보 가져오기 -->
+	<select id="selectUpNCategory" parameterType="int" resultType="Category">
+		select upcode, upname from upCate where upcode=#{upCode}
+	</select>
+	
+	<!-- 하위분류 목록 가져오기 -->
+	<select id="selectDwCategory" parameterType="int"	resultType="Category">
+		select * from dwCate where upcode=#{upcode} order by dwcode
+	</select>
+
+	<!-- 전체 재능목록 가져오기 -->
+	<select id="allTalentLIst" parameterType="int"	resultType="Talent">
+		select * from talent
+	</select>
+
+	<!-- 등록된 재능 갯수 구하기 -->
+	<select id="getTotalCount" parameterType="Paging" resultType="int">
+		select count(tnum) from talent
+	</select>
+	
+	<!-- 해당 상위분류에 등록된 재능 갯수 구하기 -->
+	<select id="getTotalCountUp" parameterType="map" resultType="int">
+		select count(tnum) from talent where upcode=#{upcode}
+	</select>
+	
+	<!-- 해당 하위분류에 등록된 재능 갯수 구하기 -->
+	<select id="getTotalCountDw" parameterType="map" resultType="int">
+		select count(tnum) from talent where dwcode=#{dwcode}
+	</select>
+
+	<!-- 해당 검색결과에 포함된 재능 갯수 구하기 -->
+	<select id="getTotalCountSch" parameterType="map" resultType="int">
+		select count(tnum) from talent 
+		where tname like '%'||#{keyword:VARCHAR}||'%'
+		or tprice like '%'||#{keyword:VARCHAR}||'%'
+		or tcontents like '%'||#{keyword:VARCHAR}||'%' 
+		or asnrefund like '%'||#{keyword:VARCHAR}||'%'
+		or tindate like '%'||#{keyword:VARCHAR}||'%' 
+		or workdate like '%'||#{keyword:VARCHAR}||'%' 
+		or seller like '%'||#{keyword:VARCHAR}||'%'
+	</select>
+
+	<!-- 상위분류 정보(코드, 이름) 및 해당 상위분류의 하위분류 정보 가져오기 -->
+	<select id="infoByUpCate" parameterType="int" resultType="Category">
+		select u.upcode, u.upname, d.dwcode, d.dwname
+		from upCate u join dwCate d on u.upcode=d.upcode and u.upcode=${value}
+	</select>
+	
+	<!-- 해당 상위분류의 전체 재능목록 가져오기 -->
+	<select id="selectByUpCate" parameterType="int" resultType="Talent">
+		select * from talent where upcode=#{upcode}
+	</select>
+	
+	<!-- 해당 하위분류의 전체 재능목록 가져오기 -->
+	<select id="selectByDwCate" parameterType="int" resultType="Talent">
+		select * from talent where dwcode=#{dwcode}
+	</select>
+
+	<!-- 재능번호에 해당하는 재능정보 가져오기 -->
+	<select id="selectByTnum" parameterType="int" resultType="Talent">
+		select * from talent where tnum=#{tnum}
+	</select>
+	
+	<!-- [회원권한] 재능등록 -->
+	<insert id="insertTalent" parameterType="Talent">
+		insert into talent(tnum, tname, tprice, timg, tqty, tspec, tscore, 
+		tcontents, asnrefund, tindate, workdate, upcode, dwcode, midx, seller)
+		values(TALENT_TNUM_SEQ.nextval, #{tname:VARCHAR}, #{tprice:NUMERIC}, #{timg:VARCHAR}, 
+		#{tqty:NUMERIC}, #{tspec:VARCHAR}, #{tscore:NUMERIC}, #{tcontents:VARCHAR}, 
+		#{asnrefund:VARCHAR}, sysdate, #{workdate:VARCHAR}, #{upcode}, #{dwcode}, #{midx}, #{seller})
+	</insert>
+	
+	<!-- [회원권한] 재능수정 -->
+	<update id="updateTalent" parameterType="Talent">
+		update talent set tname=#{tname:VARCHAR}, tprice=#{tprice:NUMERIC}, tqty=#{tqty:NUMERIC}, 
+		workdate=#{workdate:VARCHAR}, timg=#{timg:VARCHAR}, tcontents=#{tcontents:VARCHAR}, 
+		asnrefund=#{asnrefund:VARCHAR} where tnum=#{tnum}
+	</update>
+	
+	<!-- [회원권한] 재능삭제 -->
+	<delete id="deleteTalent" parameterType="int">
+		delete from talent where tnum=#{tnum}
+	</delete>
+	
+	<!-- 재능번호로 상위 및 하위분류 코드, 이름 정보 가져오기 -->
+	<select id="getUpDwName" parameterType="int" resultType="Category">
+		select u.upcode, u.upname, d.dwcode, d.dwname
+		from upCate u join dwCate d on u.upcode=d.upcode 
+		join talent t on t.dwcode=d.dwcode and t.tnum=#{tnum}
+	</select>
+	
+	<!-- 재능검색 -->
+	<select id="searchTalent" parameterType="string" resultType="Talent">
+		select * from talent 
+		where tname like '%'||#{keyword:VARCHAR}||'%'
+		or tprice like '%'||#{keyword:VARCHAR}||'%'
+		or tcontents like '%'||#{keyword:VARCHAR}||'%' 
+		or asnrefund like '%'||#{keyword:VARCHAR}||'%'
+		or tindate like '%'||#{keyword:VARCHAR}||'%' 
+		or workdate like '%'||#{keyword:VARCHAR}||'%' 
+		or seller like '%'||#{keyword:VARCHAR}||'%'
+	</select>
+	
+	<!-- 재능조회 - 페이징 처리 -->	
+	<select id="talentListPaging" parameterType="talent.model.PagingVO" resultType="Talent">
+		select * from(
+			select row_number() over(order by tindate desc, tnum desc)rn, 
+			talent.* from talent
+			where 1=1
+		)where rn between #{start} and #{end}
+	</select>
+	
+	<!-- 해당 상위분류의 전체 재능목록 가져오기 - 페이징처리 -->
+	<select id="talentListUpPaging" parameterType="map" resultType="Talent">
+		select * from(
+			select row_number() over(order by tindate desc, tnum desc)rn, 
+			talent.* from talent
+			where upcode=#{upcode}
+		)where rn between #{paging.start} and #{paging.end}
+	</select>
+	
+	<!-- 해당 하위분류의 전체 재능목록 가져오기 - 페이징처리 -->
+	<select id="talentListDwPaging" parameterType="map" resultType="Talent">
+		select * from(
+			select row_number() over(order by tindate desc, tnum desc)rn, 
+			talent.* from talent
+			where dwcode=#{dwcode}
+		)where rn between #{paging.start} and #{paging.end}
+	</select>
+	
+	<!-- 재능검색 - 페이징처리 -->
+	<select id="searchTalentPaging" parameterType="map" resultType="Talent">
+		select * from(
+			select row_number() over(order by tindate desc, tnum desc)rn, 
+			talent.* from talent
+			where tname like '%'||#{keyword:VARCHAR}||'%'
+			or tprice like '%'||#{keyword:VARCHAR}||'%'
+			or tcontents like '%'||#{keyword:VARCHAR}||'%' 
+			or asnrefund like '%'||#{keyword:VARCHAR}||'%'
+			or tindate like '%'||#{keyword:VARCHAR}||'%' 
+			or workdate like '%'||#{keyword:VARCHAR}||'%' 
+			or seller like '%'||#{keyword:VARCHAR}||'%'
+		)where rn between #{paging.start} and #{paging.end}
+	</select>
+	
+	<!--============================== 후기 관련 ==============================-->
+	<!-- 해당 재능에 대한 후기 (재능번호로) 가져오기 -->
+	<select id="getRvList" parameterType="int" resultType="Review"><!-- tnum -->
+		select * from review where tnum=#{tnum} order by wdate desc, rnum desc
+	</select>
+	
+	<!-- 후기글번호로 후기 내용 가져오기 -->
+	<select id="selectByRnum" parameterType="int" resultType="Review">
+		select * from review where rnum=#{rnum}
+	</select>
+	
+	<!-- 전체 후기 목록 가져오기 -->
+	<select id="allReviewList" resultType="Review">
+		select * from review order by wdate desc
+	</select>
+	
+	<!-- 후기 작성하기 -->
+	<insert id="insertReview" parameterType="Review">
+		insert into review(rnum, midx, tnum, rtitle, rcontents, rscore, rwriter, wdate) 
+		values(review_rnum_seq.nextval, #{midx}, #{tnum}, #{rtitle}, #{rcontents}, #{rscore}, #{rwriter}, sysdate)
+	</insert>
+	
+	<!-- 후기 수정하기 -->
+	<update id="updateReview" parameterType="Review">
+		update review set rtitle=#{rtitle:VARCHAR}, rcontents=#{rcontents:VARCHAR}, 
+		rscore=#{rscore:NUMERIC}, wdate=sysdate where rnum=#{rnum}
+	</update>
+	
+	<!-- 후기 삭제하기 -->
+	<delete id="deleteReview" parameterType="int"><!-- rnum -->
+		delete from review where rnum=#{rnum}
+	</delete>
+	
+	<!-- 해당 재능의 후기 갯수 세오기 -->
+	<select id="getRvCount" parameterType="int" resultType="int">
+		select count(rnum) from review where tnum=#{tnum}
+	</select>
+	
+	<!-- 해당 재능의 평점 구해오기 -->
+	<select id="getRscoreAvg" parameterType="int" resultType="int">
+		select avg(rscore) from review where tnum=#{tnum}
+	</select>
+</mapper>

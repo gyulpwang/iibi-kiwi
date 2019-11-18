@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="help.model.HelpMapper">
+	<!-- 도와주세요 글쓰기 -->
+	<insert id="insertHelp" parameterType="help.model.HelpVO">
+		insert into help(helpidx,
+		title,contents,writer,hprice,edate,midx,upcode,dwcode)
+		values(help_idx_seq.nextval,
+		#{title:VARCHAR},#{contents:VARCHAR},#{writer:VARCHAR},#{hprice:NUMERIC},#{edate},#{midx},#{upcode},#{dwcode})
+	</insert>
+
+	<!-- 글 목록 가져오는것 -->
+	<select id="listHelpPaging" parameterType="help.model.PagingVO" resultType="Help">
+		select * from(
+      select row_number() over(order by helpidx desc)rn, 
+      help.* from help
+      where 1=1 
+      
+    ) where rn between #{start} and #{end}
+	</select>
+
+	<!-- 글번호로 글 내용 보기 -->
+	<select id="selectHelpByhidx" parameterType="int" resultType="Help">
+		select * from help where helpidx=#{helpidx} order by helpidx desc
+	</select>
+
+	<!-- 상위분류 정보(코드, 이름) 및 해당 상위분류의 하위분류 정보 가져오기 -->
+	<select id="infoByCate" parameterType="int" resultType="Category">
+		select
+		u.upcode, u.upname, d.dwcode, d.dwname
+		from upCate u join dwCate d on
+		u.upcode=d.upcode and d.dwcode=${value}
+	</select>
+
+	<select id="infoByUpCate" parameterType="int" resultType="Category">
+		 select
+		u.upname
+		from upCate u join dwCate d on
+		u.upcode=d.upcode and d.dwcode=${value}
+	</select>
+
+	<select id="infoByCategory" resultType="Category">
+		select u.*, d.dwcode,
+		d.dwname
+		from upCate u join dwCate d on
+		u.upcode=d.upcode
+		join help h on
+		h.dwcode=d.dwcode order by helpidx
+		desc
+	</select>
+	
+	<select id="infoByUpCategory" resultType="Category">
+		select upname from upCate
+	</select>
+
+	<select id="selectCate" resultType="int" parameterType="int">
+		select count(*) from help where upcode=#{upcode}
+	</select>
+
+	<select id="DetailCate" parameterType="int" resultType="Category">
+		select u.*, d.dwcode,
+		d.dwname
+		from upCate u join dwCate d on u.upcode=d.upcode
+		join help h on h.dwcode=d.dwcode where helpidx=#{helpidx} order by helpidx desc
+	</select>
+
+	<!-- 게시글 수 가져오는것 -->
+	<select id="totalCount_find" resultType="int" parameterType="Help">
+		select count(*) from help where 1=1
+		<if test="findType != null and findString != null">
+			<choose>
+				<when test="findType ==1">
+					and title like '%'||#{findString}||'%'
+				</when>
+				<when test="findType ==2">
+					and writer like '%'||#{findString}||'% </when>
+				<when test="findType ==3">
+					and contents like '%'||#{findString}||'%'
+				</when>
+			</choose>
+		</if>
+	</select>
+
+	<select id="totalCount" resultType="int">
+		select count(*) from help
+	</select>
+
+	<delete id="deleteHelp" parameterType="int">
+		delete from help where
+		helpidx=#{helpidx}
+	</delete>
+
+	<update id="updateHelp" parameterType="Help">
+		update help set
+		upcode=#{upcode},dwcode=#{dwcode},title=#{title},contents=#{contents},
+		hprice=#{hprice},edate=#{edate} where helpidx=#{helpidx}
+	</update>
+
+	<insert id="insertSuggest" parameterType="Suggest">
+	insert into suggest(no,helpidx,email,name,contents,workdate,price,wdate,midx) values(suggest_no_seq.nextval,#{helpidx:NUMERIC},#{email:VARCHAR},
+	#{name:VARCHAR},#{contents:VARCHAR},#{workdate:VARCHAR},#{price:NUMERIC},sysdate,#{midx:NUMERIC})
+	</insert>
+	
+	<select id="countSuggest" resultType="int"
+	parameterType="int">
+		select count(*) from suggest where helpidx=#{helpidx}
+	</select>
+	
+	<select id="selectSuggestName" parameterType="int" resultType="Suggest">
+		select * from suggest where helpidx=#{helpidx}
+	</select>
+
+	<insert id="choiceSuggest" parameterType="map">
+		insert into choice_suggest values(#{helpidx},${no},choice_suggest_idx.nextval)
+	</insert>
+	
+	<update id="updateSuggest" parameterType="int">
+		update help set hmode='y' where helpidx=#{helpidx}
+	</update>
+	<update id="updateSuggestSmode" parameterType="map">
+		update suggest set smode='y' where helpidx=#{helpidx} and no=#{no}
+	</update>
+
+	<select id="searchHelp" parameterType="string"
+	resultType="Help">
+	select * from help
+	where title like '%'||#{keyword:VARCHAR}||'%'
+	or contents like '%'||#{keyword:VARCHAR}||'%'
+	</select>
+	
+	<update id="updateBuySug" parameterType="map">
+		update member set buy = buy+${iprice} where midx=#{midx}
+	</update>
+	
+	<update id="updateSellSug" parameterType="map">
+		<!-- update member set sell = sell+${iprice} where midx=#{midx} -->
+		update member set sell = sell+${iprice} where midx=
+		(select midx from suggest where no=#{no})
+	</update>
+	
+	<select id="getHelpCnt" parameterType="int"
+	resultType="int">
+		select count(*) from suggest where midx in(select midx from help where midx=#{midx} and hmode='y') and smode='y'
+	</select>
+
+	<select id="getMySellList" parameterType="int"
+	resultType="Suggest">
+		select * from suggest where midx in(select midx from help where midx=#{midx} and hmode='y') and smode='y'
+	</select>
+
+	<select id="getCntSug" resultType="int">
+		select count(no) from suggest where smode='y'
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+

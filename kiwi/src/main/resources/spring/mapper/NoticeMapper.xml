@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="service.model.NoticeMapper">
+   
+   
+   <select id="listNoticePaging" parameterType="service.model.PagingVO"
+   resultType="Notice">
+   
+       select * from(
+      select row_number() over(order by impt asc, nidx desc)rn, 
+      notice.* from notice
+      where 1=1 
+      
+    ) where rn between #{start} and #{end}
+    
+   </select>
+   
+   
+   
+   <insert id="insertNotice" parameterType="Notice">
+   insert into notice values(notice_nidx_seq.nextval,
+   #{title},#{contents},#{writer:VARCHAR},sysdate,
+   #{readnum:NUMERIC},#{impt:VARCHAR},#{clip:VARCHAR},#{aidx:NUMERIC})
+   </insert>
+   
+    <update id="updateReadnum" parameterType="int">
+      update notice set readnum=readnum+1 where nidx=#{nidx}
+   </update>
+   
+   <select id="selectNoticeByNidx" parameterType="int"
+   resultType="Notice">
+      select * from notice where nidx=#{nidx}
+   </select>
+   
+   <select id="totalCount" resultType="int"
+   parameterType="service.model.PagingVO">
+      select count(*) from notice where 1=1
+      
+   </select> 
+   
+   <delete id="deleteNotice" parameterType="int">
+      delete from notice where nidx=#{nidx}
+   </delete>
+   
+   <update id="updateNotice" parameterType="Notice">
+      update notice set title=#{title},contents=#{contents},
+      writer=#{writer:VARCHAR},wdate=sysdate,
+      impt=#{impt:VARCHAR},clip=#{clip:VARCHAR},aidx=#{aidx:NUMERIC}
+      where nidx=#{nidx}
+   </update>
+   
+   <select id="seachNotice" parameterType="string" 
+   resultType="Notice">
+   select * from notice
+   where title like '%'||#{keyword:VARCHAR}||'%'
+   or contents like'%'||#{keyword:VARCHAR}||'%'
+   </select>
+   
+   <select id="noticeBydate" 
+   resultType="Notice">
+   select * from notice order by nidx desc
+   
+   </select>
+</mapper>
